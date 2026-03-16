@@ -1,21 +1,7 @@
 // script.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyAkQpzDCLuL_IXuyIqZrAl4B__BtvieGmI",
-    authDomain: "iook-92aee.firebaseapp.com",
-    projectId: "iook-92aee",
-    storageBucket: "iook-92aee.firebasestorage.app",
-    messagingSenderId: "92508471614",
-    appId: "1:92508471614:web:3d2a192bc0182ff436ac6f"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// البيانات الأساسية فارغة للتعبئة الحقيقية
-let appData = {
+// البيانات الأساسية مع استخدام التخزين المحلي (Local Storage)
+let appData = JSON.parse(localStorage.getItem("system_data")) || {
     drivers: [],
     mandoubs: [],
     buses: [],
@@ -89,24 +75,23 @@ async function compressImageAndConvertToBase64(file) {
     });
 }
 
-// حفظ وجلب البيانات من Firebase
+// حفظ وجلب البيانات من التخزين المحلي بدلاً من قاعدة البيانات
 async function saveToDB() {
     try {
-        await setDoc(doc(db, "system", "data"), appData);
+        localStorage.setItem("system_data", JSON.stringify(appData));
+        refreshAllUI();
     } catch (e) {
         console.error("خطأ في الحفظ:", e);
     }
 }
 
 function listenToDB() {
-    onSnapshot(doc(db, "system", "data"), (docSnap) => {
-        if (docSnap.exists()) {
-            appData = docSnap.data();
-            refreshAllUI();
-        } else {
-            saveToDB();
-        }
-    });
+    if (localStorage.getItem("system_data")) {
+        appData = JSON.parse(localStorage.getItem("system_data"));
+        refreshAllUI();
+    } else {
+        saveToDB();
+    }
 }
 
 function refreshAllUI() {
