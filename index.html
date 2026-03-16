@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة النقل والرحلات</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div id="login-screen" class="screen-container">
+        <div class="login-container">
+            <i class="fas fa-bus-alt login-logo"></i>
+            <h2>مرحباً بك في نظام النقل</h2>
+            <p>الرجاء تحديد صفتك للدخول</p>
+            
+            <div id="admin-login-section">
+                <input type="password" id="admin-pass-input" placeholder="كلمة مرور الإدارة" class="login-input">
+                <button id="btn-login-admin" class="btn btn-primary">
+                    <i class="fas fa-user-tie"></i> دخول كـ مدير / محاسب
+                </button>
+            </div>
+
+            <hr style="margin: 20px 0; border-color: rgba(255,255,255,0.2);">
+
+            <div id="user-login-section">
+                <select id="user-name-select" class="login-input"></select>
+                <input type="password" id="user-pass-input" placeholder="كلمة المرور" class="login-input">
+                <button id="btn-login-user" class="btn btn-secondary">
+                    <i class="fas fa-steering-wheel"></i> دخول كـ سائق / مندوب
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-app" class="screen-container hidden">
+        <header class="top-header">
+            <h1>واجهة الإدارة</h1>
+            <div class="user-info btn-logout">
+                <i class="fas fa-sign-out-alt"></i> خروج
+            </div>
+        </header>
+
+        <main>
+            <section id="admin-trips" class="tab-content active">
+                <h2>إنشاء رحلة جديدة</h2>
+                <form class="data-form" id="trip-form">
+                    <div class="form-group">
+                        <label>اسم الرحلة</label>
+                        <input type="text" id="trip-name" placeholder="مثال: رحلة عمرة رجب">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>تاريخ الرحلة</label>
+                            <input type="date" id="trip-date">
+                        </div>
+                        <div class="form-group">
+                            <label>عدد الأيام</label>
+                            <input type="number" id="trip-days">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>اسم المندوب</label>
+                            <input type="text" id="mandoub-select" list="mandoub-list" placeholder="اختر أو اكتب اسم المندوب">
+                            <datalist id="mandoub-list"></datalist>
+                        </div>
+                        <div class="form-group">
+                            <label>اسم السائق</label>
+                            <input type="text" id="driver-select" list="driver-list" placeholder="اختر أو اكتب اسم السائق">
+                            <datalist id="driver-list"></datalist>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>اسم السائق الثاني</label>
+                            <input type="text" id="driver2-select" list="driver-list" placeholder="اختر أو اكتب اسم السائق الثاني">
+                        </div>
+                        <div class="form-group">
+                            <label>الباص المستخدم</label>
+                            <select id="bus-select"></select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>عدد باصات الرحلة</label>
+                            <input type="number" id="bus-count" value="1">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>عقد اتفاق بين الطرفين (إرفاق صورة)</label>
+                        <input type="file" accept="image/*" id="trip-file">
+                        <input type="hidden" id="trip-file-base64">
+                    </div>
+                    <div class="form-group">
+                        <label>ملاحظات (اختياري)</label>
+                        <textarea id="trip-notes" rows="3" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #d1d5db;"></textarea>
+                    </div>
+                    <button type="button" id="btn-save-trip" class="btn btn-primary w-100">حفظ وإنشاء الرحلة</button>
+                </form>
+
+                <div id="saved-trips-container" style="margin-top: 20px;">
+                    <h3 class="section-title">الرحلات المحفوظة</h3>
+                    <ul class="reports-list" id="saved-trips-list"></ul>
+                </div>
+            </section>
+
+            <section id="admin-trip-info" class="tab-content">
+                <h2>معلومات الرحلة الشاملة</h2>
+                <button type="button" class="btn btn-secondary w-100" style="margin-bottom: 15px;">إضافة رحلة جديدة</button>
+                <form class="data-form" id="trip-info-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>العملة</label>
+                            <select id="ti-currency"><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>سعر شراء البرنامج الكلي</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-1">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>اجرة نقل الفرد</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-new1">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>السعر الكلي لغرف مكه</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-2">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>السعر الكلي لغرف المدينة</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-3">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>سعر العدد الكلي للتأشيرات</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-4">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>سعر التأشيرة الواحدة</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-5">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>مبلغ الهيئة الكلي</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-6">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>تسديد المبلغ في بغداد (العدد)</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-7">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>تسديد المبلغ في بغداد (المبلغ)</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-8">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>تسديد في الحدود (الاطفال)</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-9">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>تسديد في الحدود (المبلغ)</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-10">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>سعر الهدايا</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-11">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>عدد المعتمرين الكلي</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-12">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>عدد التأشيرات الكلية</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-13">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>عدد التأشيرات المجانية</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-14">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>مورد البرنامج</label>
+                            <input type="text" id="ti-15">
+                        </div>
+                        <div class="form-group">
+                            <label>الانطلاقية</label>
+                            <div class="input-with-currency">
+                                <input type="text" id="ti-16">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>الوجهة</label>
+                            <input type="text" id="ti-17">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>غرف مكة (العدد)</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-18">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>سعر الغرفة (مكة)</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-19">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>غرف المدينة (العدد)</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-20">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>سعر الغرفة (المدينة)</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-21">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>المبلغ الكلي للاقساط</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-22">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>مبلغ القسط للشخص الواحد</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-new2">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>عدد الاقساط الكلية</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-23">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>سعر الرحلة</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-24">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>أجرة الباص الكلية</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-25">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>المبلغ الكلي الوارد</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-26">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>المبلغ الكلي الصادر</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-27">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>ربح الرحلة</label>
+                            <div class="input-with-currency">
+                                <input type="number" readonly class="bg-light">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>صافي ربح الرحلة</label>
+                            <div class="input-with-currency">
+                                <input type="number" readonly class="bg-light">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" id="btn-save-trip-info" class="btn btn-primary w-100">حفظ المعلومات</button>
+                </form>
+
+                <div id="saved-trip-infos-container" style="margin-top: 20px;">
+                    <h3 class="section-title">المعاملات المحفوظة</h3>
+                    <ul class="reports-list" id="saved-trip-infos-list"></ul>
+                </div>
+            </section>
+
+            <section id="admin-finance" class="tab-content">
+                <h2>المالية والعهد</h2>
+                <form class="data-form" id="finance-form">
+                    <div class="form-group">
+                        <label>العملة</label>
+                        <select id="finance-currency"><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                    </div>
+
+                    <h3 class="section-title">صندوق الباص</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>نوع الباص</label>
+                            <select id="finance-bus-type"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>أجرة الباص</label>
+                            <input type="number" id="finance-bus-fare">
+                        </div>
+                    </div>
+                    
+                    <h3 class="section-title">بيانات السائق</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label>اسم السائق</label><select id="finance-driver-name"></select></div>
+                        <div class="form-group"><label>مبلغ الدين السابق للسائق</label><input type="number" id="finance-driver-debt"></div>
+                        <div class="form-group"><label>سلفة اضافية عاجله للسائق</label><input type="number" id="finance-driver-advance"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>سلفة السائق (دينار)</label><input type="number" id="finance-driver-loan-iqd"></div>
+                        <div class="form-group"><label>سلفة السائق (دولار)</label><input type="number" id="finance-driver-loan-usd"></div>
+                        <div class="form-group"><label>سلفة السائق (ريال)</label><input type="number" id="finance-driver-loan-sar"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>الأجرة الكلية</label><input type="number" id="driver-total"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>المبلغ الواصل</label><input type="number" id="driver-paid"></div>
+                        <div class="form-group"><label>المبلغ المتبقي</label><input type="number" id="driver-rem" readonly></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>خصم السائق</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-new4">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>تقييم السائق للرحلة</label>
+                        <select id="finance-driver-eval"><option>ممتاز</option><option>جيد جداً</option><option>جيد</option><option>مقبول</option><option>ضعيف</option></select>
+                    </div>
+
+                    <h3 class="section-title">بيانات المندوب</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label>اسم المندوب</label><select id="finance-mandoub-name"></select></div>
+                        <div class="form-group"><label>سلفة اضافية عاجله للمندوب</label><input type="number" id="finance-mandoub-advance"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>سلفة المندوب (دينار)</label><input type="number" id="finance-mandoub-loan-iqd"></div>
+                        <div class="form-group"><label>سلفة المندوب (دولار)</label><input type="number" id="finance-mandoub-loan-usd"></div>
+                        <div class="form-group"><label>سلفة المندوب (ريال)</label><input type="number" id="finance-mandoub-loan-sar"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>الأجرة الكلية</label><input type="number" id="man-total"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>المبلغ الواصل</label><input type="number" id="man-paid"></div>
+                        <div class="form-group"><label>المبلغ المتبقي</label><input type="number" id="man-rem" readonly></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>حوافز وإكراميات</label><input type="number" id="finance-mandoub-bonus"></div>
+                        <div class="form-group">
+                            <label>خصم المندوب</label>
+                            <div class="input-with-currency">
+                                <input type="number" id="ti-new3">
+                                <select><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>تقييم المندوب</label>
+                            <select id="mandoub-eval-select"><option>ممتاز</option><option>جيد جداً</option><option>جيد</option><option>مقبول</option><option>ضعيف</option></select>
+                        </div>
+                    </div>
+                    <div class="form-group" id="mandoub-eval-reason-group">
+                        <label>السبب (يظهر للمندوب)</label>
+                        <input type="text" id="mandoub-eval-reason" placeholder="اذكر سبب التقييم">
+                    </div>
+
+                    <button type="button" id="btn-save-finance" class="btn btn-primary w-100">حفظ المالية</button>
+                </form>
+            </section>
+
+            <section id="admin-funds" class="tab-content">
+                <h2>الصناديق المالية</h2>
+                
+                <h3 class="section-title">صندوق النقل العام</h3>
+                <div class="stats-grid" id="buses-funds-grid"></div>
+
+                <h3 class="section-title">صناديق أخرى</h3>
+                <div class="stats-grid">
+                    <div class="stat-card special-fund">
+                        <i class="fas fa-bus-alt"></i>
+                        <h4>صندوق النقل العام</h4>
+                        <div class="fund-details">
+                            <span>وارد: <span id="public-trans-in">0</span></span> | <span>صادر: <span id="public-trans-out">0</span></span> | <span>تحويل: 0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card special-fund">
+                        <i class="fas fa-kaaba"></i>
+                        <h4>صندوق العمرة</h4>
+                        <div class="fund-details">
+                            <span>وارد: <span id="umrah-trans-in">0</span></span> | <span>صادر: <span id="umrah-trans-out">0</span></span> | <span>تحويل: 0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card special-fund">
+                        <i class="fas fa-chart-line"></i>
+                        <h4>صندوق الأرباح</h4>
+                        <div class="fund-details">
+                            <span>وارد: <span id="profit-in">0</span></span> | <span>صادر: <span id="profit-out">0</span></span> | <span>تحويل: 0</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="admin-reports" class="tab-content">
+                <h2>التقارير الشاملة</h2>
+                
+                <ul class="reports-list" id="reports-main-list">
+                    <li onclick="showReport('تقرير مصرف الرحلة')" style="cursor: pointer;"><i class="fas fa-file-alt"></i> تقرير مصرف الرحلة</li>
+                    <li onclick="showReport('تقرير رحلات الباص الواحد')" style="cursor: pointer;"><i class="fas fa-file-alt"></i> تقرير رحلات الباص الواحد</li>
+                    <li onclick="showReport('تقرير أعطال الصيانة')" style="cursor: pointer;"><i class="fas fa-file-alt"></i> تقرير أعطال الصيانة</li>
+                    <li onclick="showReport('تقرير الوارد الكلي للسائق')" style="cursor: pointer;"><i class="fas fa-file-invoice-dollar"></i> تقرير الوارد الكلي للسائق</li>
+                    <li onclick="showReport('تقرير الوارد الكلي للمندوب')" style="cursor: pointer;"><i class="fas fa-file-invoice-dollar"></i> تقرير الوارد الكلي للمندوب</li>
+                    <li onclick="showReport('تقرير عدد السفرات الكلي')" style="cursor: pointer;"><i class="fas fa-route"></i> تقرير عدد السفرات الكلي</li>
+                    <li onclick="showReport('تقرير عدد الرحلات للسائق مع مدة الأيام')" style="cursor: pointer;"><i class="fas fa-calendar-check"></i> تقرير عدد الرحلات للسائق مع مدة الأيام</li>
+                    <li onclick="showReport('تقرير عدد الرحلات للمندوب مع مدة الأيام')" style="cursor: pointer;"><i class="fas fa-calendar-check"></i> تقرير عدد الرحلات للمندوب مع مدة الأيام</li>
+                </ul>
+
+                <div id="report-viewer" class="hidden" style="margin-top: 20px;">
+                    <button onclick="hideReport()" class="btn btn-secondary" style="margin-bottom: 15px;">رجوع للقائمة</button>
+                    <h3 id="report-title" class="section-title"></h3>
+                    <div class="form-row" style="margin-bottom: 15px;">
+                        <div class="form-group" style="flex: 2;">
+                            <input type="text" id="report-search-input" placeholder="بحث...">
+                        </div>
+                        <button type="button" onclick="searchReport()" class="btn btn-primary" style="flex: 1;">بحث</button>
+                        <button type="button" onclick="exportReportExcel()" class="btn btn-secondary" style="flex: 1; background-color: #10b981;">تصدير ملف اكسل</button>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table id="report-table" style="width: 100%; border-collapse: collapse; text-align: right; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                            <thead>
+                                <tr id="report-table-head" style="background: var(--primary-admin); color: white;">
+                                    <th style="padding: 12px; border: 1px solid #ddd;">المعلومات</th>
+                                    <th style="padding: 12px; border: 1px solid #ddd;">التفاصيل</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-table-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="admin-settings" class="tab-content">
+                <h2>إنشاء يوزر وإعدادات النظام</h2>
+                
+                <h3 class="section-title">إنشاء مستخدم (سائق أو مندوب)</h3>
+                <form class="data-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>اسم الشخص</label>
+                            <input type="text" id="new-user-name">
+                        </div>
+                        <div class="form-group">
+                            <label>كلمة السر</label>
+                            <input type="text" id="new-user-pass">
+                        </div>
+                    </div>
+                    <button type="button" id="btn-save-new-user" class="btn btn-primary w-100">حفظ المستخدم</button>
+                    <ul class="reports-list" id="users-list" style="margin-top: 15px;"></ul>
+                </form>
+
+                <h3 class="section-title">إعدادات أسماء المندوبين</h3>
+                <form class="data-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <input type="text" id="new-mandoub-name-input" placeholder="اكتب اسم مندوب جديد">
+                        </div>
+                        <button type="button" id="btn-add-mandoub" class="btn btn-primary">إضافة</button>
+                    </div>
+                    <ul class="reports-list" id="mandoubs-settings-list" style="margin-top: 15px;"></ul>
+                </form>
+
+                <h3 class="section-title">إعدادات أسماء السائقين</h3>
+                <form class="data-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <input type="text" id="new-driver-name-input" placeholder="اكتب اسم سائق جديد">
+                        </div>
+                        <button type="button" id="btn-add-driver" class="btn btn-primary">إضافة</button>
+                    </div>
+                    <ul class="reports-list" id="drivers-settings-list" style="margin-top: 15px;"></ul>
+                </form>
+
+                <h3 class="section-title">إعدادات الباصات</h3>
+                <form class="data-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <input type="text" id="new-bus-input" placeholder="اكتب اسم باص جديد">
+                        </div>
+                        <button type="button" id="btn-add-bus" class="btn btn-primary">إضافة</button>
+                    </div>
+                    <ul class="reports-list" id="bus-settings-list" style="margin-top: 15px;"></ul>
+                </form>
+
+                <h3 class="section-title">إعدادات أنواع المصاريف</h3>
+                <form class="data-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <input type="text" id="new-exp-type-input" placeholder="اكتب نوع مصروف جديد">
+                        </div>
+                        <button type="button" id="btn-add-exp-type" class="btn btn-primary">إضافة</button>
+                    </div>
+                    <ul class="reports-list" id="exp-types-list"></ul>
+                </form>
+
+                <h3 class="section-title">إعدادات خيارات مصاريف الباصات</h3>
+                <form class="data-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <input type="text" id="new-bus-opt-input" placeholder="اكتب خيار جديد">
+                        </div>
+                        <button type="button" id="btn-add-bus-opt" class="btn btn-primary">إضافة</button>
+                    </div>
+                    <ul class="reports-list" id="bus-opts-list"></ul>
+                </form>
+
+            </section>
+        </main>
+
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active" data-target="admin-trips" data-role="admin">
+                <i class="fas fa-plus-circle"></i><span>الرحلات</span>
+            </a>
+            <a href="#" class="nav-item" data-target="admin-trip-info" data-role="admin">
+                <i class="fas fa-info-circle"></i><span>معلومات</span>
+            </a>
+            <a href="#" class="nav-item" data-target="admin-finance" data-role="admin">
+                <i class="fas fa-money-bill-wave"></i><span>المالية</span>
+            </a>
+            <a href="#" class="nav-item" data-target="admin-funds" data-role="admin">
+                <i class="fas fa-boxes"></i><span>الصناديق</span>
+            </a>
+            <a href="#" class="nav-item" data-target="admin-reports" data-role="admin">
+                <i class="fas fa-chart-pie"></i><span>التقارير</span>
+            </a>
+            <a href="#" class="nav-item" data-target="admin-settings" data-role="admin">
+                <i class="fas fa-cogs"></i><span>إعدادات</span>
+            </a>
+        </nav>
+    </div>
+
+    <div id="user-app" class="screen-container hidden">
+        <header class="top-header" style="background-color: #059669;">
+            <h1>واجهة السائق والمندوب</h1>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <span id="logged-in-user-name" style="font-weight: bold; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 5px;"></span>
+                <div class="user-info btn-logout">
+                    <i class="fas fa-sign-out-alt"></i> خروج
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <section id="user-trip" class="tab-content active">
+                <h2>معلومات وإحصائيات الرحلات</h2>
+                <div class="info-card">
+                    <h3>الإحصائيات الشخصية</h3>
+                    <p><strong>الرحلات المعلقة حالياً:</strong> <span id="user-stat-pending">0</span> رحلة</p>
+                    <p><strong>عدد السفرات الكلي:</strong> <span id="user-stat-total">0</span> سفرة</p>
+                    <p><strong>إجمالي الرحلات مع أيام البقاء:</strong> <span id="user-stat-days">0</span> يوم</p>
+                </div>
+
+                <h2>معلومات الرحلة الحالية</h2>
+                <div class="info-card" id="user-current-trip-info">
+                    <p>لا توجد رحلة حالية معلقة.</p>
+                </div>
+            </section>
+
+            <section id="user-expenses" class="tab-content">
+                <h2>تسجيل المصاريف</h2>
+                <form class="data-form" id="user-expense-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>العملة</label>
+                            <select id="user-expense-currency"><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label>المبلغ</label>
+                            <input type="number" id="user-expense-amount" placeholder="أدخل المبلغ">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>نوع المصروف</label>
+                            <select id="user-expense-type-select"></select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group" id="liters-count-group">
+                            <label>عدد اللترات</label>
+                            <input type="number" id="user-expense-liters" placeholder="أدخل عدد اللترات">
+                        </div>
+                        <div class="form-group">
+                            <label>نوع السيارة</label>
+                            <select id="user-car-type-select"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>ملاحظة / تفاصيل</label>
+                        <input type="text" id="user-expense-notes" placeholder="تفاصيل إضافية">
+                    </div>
+                    <div class="form-group">
+                        <label>إرفاق صورة الوصل</label>
+                        <input type="file" accept="image/*" id="user-expense-file">
+                        <input type="hidden" id="user-expense-file-base64">
+                    </div>
+                    <button type="button" id="btn-save-user-expense" class="btn btn-primary w-100" style="background-color: #059669;">تسجيل المصروف</button>
+                </form>
+            </section>
+
+            <section id="user-income" class="tab-content">
+                <h2>تسجيل الإيرادات</h2>
+                <form class="data-form" id="user-income-form">
+                    <div class="form-group">
+                        <label>العملة</label>
+                        <select id="user-income-currency"><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>نوع الإيراد</label>
+                        <select id="user-income-type">
+                            <option>عمرة إنابة</option>
+                            <option>نقل بريد</option>
+                            <option>نقل معتمر</option>
+                            <option>إيرادات أخرى</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>المبلغ المستلم</label>
+                        <input type="number" id="user-income-amount">
+                    </div>
+                    <button type="button" id="btn-save-user-income" class="btn btn-primary w-100" style="background-color: #059669;">تسجيل الإيراد</button>
+                </form>
+            </section>
+
+            <section id="user-bus-expenses" class="tab-content">
+                <h2>مصاريف الباصات</h2>
+                <form class="data-form" id="user-bus-expense-form">
+                    <div class="form-group">
+                        <label>العملة</label>
+                        <select id="user-bus-exp-currency"><option>دينار</option><option>دولار</option><option>ريال</option></select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>المبلغ</label>
+                            <input type="number" id="user-bus-exp-amount">
+                        </div>
+                        <div class="form-group">
+                            <label>التاريخ</label>
+                            <input type="date" id="user-bus-exp-date">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>رفع صورة</label>
+                        <input type="file" accept="image/*" id="user-bus-exp-file">
+                        <input type="hidden" id="user-bus-exp-file-base64">
+                    </div>
+                    <div class="form-group">
+                        <label>خيارات (اختياري)</label>
+                        <select id="user-bus-opts-select"></select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>اسم السائق</label>
+                            <select id="user-bus-driver-select"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>نوع السيارة</label>
+                            <select id="user-bus-car-select"></select>
+                        </div>
+                    </div>
+                    <button type="button" id="btn-save-user-bus-exp" class="btn btn-primary w-100" style="background-color: #059669;">حفظ مصاريف الباص</button>
+                </form>
+            </section>
+
+        </main>
+
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active" data-target="user-trip" data-role="user">
+                <i class="fas fa-bus"></i><span>رحلتي</span>
+            </a>
+            <a href="#" class="nav-item" data-target="user-expenses" data-role="user">
+                <i class="fas fa-hand-holding-usd"></i><span>المصاريف</span>
+            </a>
+            <a href="#" class="nav-item" data-target="user-income" data-role="user">
+                <i class="fas fa-wallet"></i><span>الإيرادات</span>
+            </a>
+            <a href="#" class="nav-item" data-target="user-bus-expenses" data-role="user">
+                <i class="fas fa-tools"></i><span>مصاريف الباص</span>
+            </a>
+        </nav>
+    </div>
+
+    <div id="image-modal" class="modal hidden">
+        <span class="close-modal">&times;</span>
+        <img class="modal-content" id="modal-img">
+    </div>
+
+    <div id="custom-alert-container" class="custom-alert-container"></div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
